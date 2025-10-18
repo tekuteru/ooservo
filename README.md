@@ -38,7 +38,7 @@ This motor uses the same wiring as a standard SG90 servo:
 
 ## Speed Parameter
 The `speed` argument must be an integer between 0 and 255.  
-Speed value is calculated as:**Speed = Angular Velocity [°/s] × 255 / 700**
+Speed value is calculated as : **Speed = Angular Velocity [°/s] × 255 / 700**
 | Speed (0–255) | Angular Velocity [°/s] |
 |---------------|---------------------|
 | 0             | 0 °/s (no rotation) |
@@ -295,3 +295,4 @@ void loop() {
 }
 
 ```
+
