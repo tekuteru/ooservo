@@ -1,160 +1,175 @@
-# OO-Servo
+# Tekuteru Servo
 
-OO-Servo is an advanced servo motor that goes far beyond standard hobby servos.
-It supports multi-turn absolute positioning (±524,287 rotations), speed adjustment (max 700°/s), and real-time angle reading, while maintaining the same size and wiring compatibility as the SG90.
+TekuteruServo is an advanced servo motor that significantly outperforms standard hobby servos like the SG90, while remaining just as easy to control. 
+It supports ±1° angular accuracy, multi-turn positioning (±524,287 rotations), adjustable rotation speeds (up to 600 deg/s), and real-time angle feedback—all while maintaining the same programming control logic, physical dimensions, and wiring compatibility as the SG90.
 
-**Note:** This library works only with OO-Servo hardware and cannot be used with standard hobby servo motors (e.g., SG90, MG996R).  
-The OO-Servo hardware can be purchased here: [Buy OO-Servo](https://example.com)
-
+**Note:** This library is specifically designed for TekuteruServo hardware and is **not compatible** with standard hobby servos (e.g., SG90, MG996R).
+The Tekuteru-Servo hardware can be purchased here: [Buy TekuteruServo](https://tekuteru-en.square.site/product/TekuteruServo-full-angle-servo-motor-TekuteruServo-/6YOHLJ6JAV6S326MC53HLNRV?cp=true&sa=true&sbp=false&q=false)
 
 ## Features
-* Supports extended angles up to ±188,743,320° (±524,287 full rotations)
-* Angle accuracy: ±1°
-* Dedicated library with intuitive `attach()` and `write()` methods, compatible with the standard Arduino Servo library
-* Adjustable speed range: 1–700 °/s
-* Real-time angle reading
-* Same wiring and dimensions as SG90
-
+* **Extended angle range:** ±188,743,320° (±524,287 full rotations)
+* **High accuracy:** ±1°
+* **Intuitive Library Interface:** Dedicated library with `attach()` and `write()` methods, compatible with the standard Arduino Servo library
+* **Volatile Rotation Count:** While the absolute position is kept, the multi-turn rotation count is reset to zero upon power-up.
+* **Adjustable Speed:** 10 ~ 600 deg/s
+* **Real-time Feedback:** Capable of reading the current angle during operation.
+* **Drop-in Replacement:** Same wiring and physical dimensions as the SG90.
 
 ## Mechanical Specifications
-* Operating Voltage: 5V
-* Maximum Rotation Speed: 700°/s (0.086sec/60°, 117rpm)
-* Stall Torque: 2 kgf cm
-* Gear Material: plastic
-* Dimensions: same as SG90
-* Wiring: Same as SG90 (3-pin: VCC, GND, Signal)
+* **Supply Voltage:** 5V
+* **Logic Voltage:** 3.3V - 5V
+* **Maximum Rotation Speed:** 600 deg/s (0.1sec/60deg, approx. 100rpm)
+* **Angular Acceleration:** 6,000 deg/s²
+* **Stall Torque:** 1.8 kgf·cm
+* **Gear Material:** Plastic
+* **Dimensions:** Same as SG90
+* **weight:** 15 g
+* **Wiring:** Same as SG90 (3-pin: VCC, GND, Signal)
 
+## Wiring Guide
+This motor follows the standard SG90 wiring convention:
 
-## Wiring Example
-This motor uses the same wiring as a standard SG90 servo:
-| Wire Color | Function | Connect to          |
-|------------|----------|---------------------|
-| Red        | VCC      | 5V Supply           |
-| Brown      | GND      | Arduino GND         |
-| Yellow     | Signal   | Arduino digital pin |
+| Wire Color | Function | Connection      |
+|------------|----------|-----------------|
+| Brown      | GND      | Arduino GND     |
+| Red        | VCC      | 5V Power Supply |
+| Yellow     | Signal   | Arduino I/O pin |
 
 ![Wiring Diagram](wiring.png)
-
-
-## Speed Parameter
-The `speed` argument must be an integer between 0 and 255.  
-Speed value is calculated as : **Speed = Angular Velocity [°/s] × 255 / 700**
-| Speed (0–255) | Angular Velocity [°/s] |
-|---------------|---------------------|
-| 0             | 0 °/s (no rotation) |
-| 1             | 2 °/s               |
-| 127           | 348 °/s             |
-| 255           | 700 °/s (max speed) |
-
 
 ## Class Methods
 
 ### `attach(pin)`
-Attach a servo motor to the specified pin.  
-**Arguments:**  
-- `pin`: `uint8_t` — Arduino pin number.
+Attaches the servo to the specified pin.  
 
----
-
-### `attach(pin, hold)`
-Attaches a servo motor to an i/o pin.
-**Arguments:**  
-- `pin`: `uint8_t`  
-- `hold`: `bool` — If `false`, the motor does not hold its position (default: `true`).
-
----
-
-### `zeroing()`
-Set the current angle as 0°.  
-The setting is saved even after power off.
+**Arguments:**
+- `pin`: `uint8_t`
 
 ---
 
 ### `write(angle)`
-Rotate to the specified angle at maximum speed.  
-**Arguments:**  
-- `angle`: `long` (`-188,743,320 ~ 188,743,320`)
+Rotates to the target angle at maximum speed.  
+Upon power-up, the initial angle is initialized within the range of 0° to 359°.
+
+**Arguments:**
+- `angle`: `int32_t` (Range: `-188,743,320` to `188,743,320`)
 
 ---
 
 ### `write(angle, speed)`
-Rotate to the specified angle with speed.  
-**Arguments:**  
-- `angle`: `long`  
-- `speed`: `uint8_t (0–255)` — `0 = stop`, `255 = 700°/s`.
+Rotates to the target angle at a specified speed.
+The `speed` argument is an integer between 0 and 255:
+- **0**: Stop
+- **1**: Minimum speed (10 deg/s)
+- **255**: Maximum speed (600 deg/s)
 
----
+To specify a particular angular velocity (between 10 and 600 deg/s), use the following mapping in your code:
+`speed = map(angularVelocity, 10, 600, 1, 255);`
 
-### `write(angle, wait)`
-Rotate to the specified angle at max speed.  
-**Arguments:**  
-- `angle`: `long`  
-- `wait`: `bool` — If `true`, wait until done (default: `false`).  
-**Note:** Sending another command within 50 ms may cause a ±1° positional error.
+| Speed Value (0–255) | Angular Velocity [deg/s] |
+|---------------------|--------------------------|
+| 0                   | 0 deg/s (Stop)           |
+| 1                   | 10 deg/s                 |
+| 127                 | 303 deg/s                |
+| 255                 | 600 deg/s (Max speed)    |
+
+**Note on Motion Control:**
+This motor utilizes trapezoidal motion profiling, which includes automatic acceleration and deceleration phases for smoother starts and stops.
+
+**Arguments:**
+- `angle`: `int32_t`
+- `speed`: `uint8_t`
 
 ---
 
 ### `write(angle, speed, wait)`
-Full control over angle, speed, and wait.  
-**Arguments:**  
-- `angle`: `long`  
-- `speed`: `uint8_t`  
-- `wait`: `bool`
+Rotates with an option to block execution until the movement is complete. If `true`, the function waits for the move to finish.
 
----
-
-### `wait()`
-Wait until movement finishes.
+**Arguments:**
+- `angle`: `int32_t`
+- `speed`: `uint8_t`
+- `wait`: `bool` (Default: `false`)
 
 ---
 
 ### `stop()`
-Stop the servo immediately at the current position.
+Immediately stops the servo at its current position.
 
 ---
 
 ### `read()`
 Returns the current angle in degrees.  
-**Returns:** `long`  
-**Note:**
-This function completely stops the motor and blocks until the angle is read.  
-After calling it, the motor remains stopped until another command (e.g., `write()`) is sent.
+The initial angle at power-on is between 0° and 359°. Values are rounded to the nearest integer.  
+Returns `-2,147,483,648` if a communication error occurs.
 
-## Safety Notes
-* ⚠ Avoid strong magnetic fields and unstable power supplies
-* ⚠ Using interrupts may cause unstable behavior
-* ⚠ Do not pull the cable; it may break
+**Returns:** `int32_t`
+
+---
+
+### `wait()`
+Blocks execution until the current movement is finished.
+
+---
+
+### `isMoving()`
+Returns `true` if the servo is currently rotating.
+
+**Returns:** `bool`
+
+---
+
+### `zeroing()`
+Sets the current position as the 0° reference point.  
+This zero-point is stored in non-volatile memory (EEPROM/Flash) and persists across power cycles.  
+**Note:** Only the absolute position (0-359°) is saved; the rotation count is not preserved.
+
+---
+
+### `setHold(hold)`
+Configures the motor's behavior when external force is applied. If set to `true`, the servo will actively maintain its current position (default). If set to `false`, the motor enters a "free move" state, allowing it to be rotated manually by external force; however, please note that angular accuracy may decrease while in this state.
+
+**Arguments:**
+- `hold`: `bool`(Default: `true`)
+
+
+## Safety Precautions
+* ⚠ **Pin Control Limits:** Each Arduino I/O pin is designed to control only one TekuteruServo at a time. However, you can connect and broadcast to multiple motors on a single pin if you only use methods that do not require feedback, such as `write()` with `wait=false`, `stop()`, `zeroing()`, and `setHold()`.
+* ⚠ **49.7-Day Limit:** Malfunctions will occur if the main unit's power remains on for more than 49.7 consecutive days.
+* ⚠ **Interrupts:** Using hardware interrupts in your sketch may cause jitter or unintended behavior.
+* ⚠ **Cable Care:** Do not pull on the wiring; internal connections may break.
+* ⚠ **Mechanical Limits:** Strong impacts or sustained stall torque will damage the plastic gears.
+* ⚠ **Magnetic Interference:** Avoid strong magnetic fields and unstable power sources.
 
 
 ## Code Examples
 
-### 1. Basic rotation
+### 1. Basic Rotation
 ```
-#include <ooservo.h>
+#include <TekuteruServo.h>
 
-ooservo myservo;  // create servo object to control a servo
+TekuteruServo myservo;
 
 void setup() {
-  myservo.attach(2);  // Attach the servo to pin 2
+  myservo.attach(2);
 }
 
 void loop() {
-  myservo.write(180);  // Move to 180 degrees (At power-up, the angle is within 0 ≤ angle < 360)
-  delay(3000);         // Wait 3 seconds
+  myservo.write(180);  // Move to 180 degrees
+  delay(3000);
 
-  myservo.write(-180);  // Move to -180 degrees
-  delay(3000);          // Wait 3 seconds
+  myservo.write(-180); // Move to -180 degrees
+  delay(3000);
 
   myservo.write(540);  // Move to 540 degrees
-  delay(3000);         // Wait 3 seconds
+  delay(3000);
 }
 ```
 
 ### 2. Speed control
 ```
-#include <ooservo.h>
+#include <TekuteruServo.h>
 
-ooservo myservo;
+TekuteruServo myservo;
 
 int angularVelocity;
 
@@ -173,80 +188,74 @@ void loop() {
   delay(3000);
 
 
-  angularVelocity = 0;
-  myservo.write(180, map(angularVelocity, 0, 700, 0, 255));  // No rotation
-  delay(3000);
-
   angularVelocity = 300;
-  myservo.write(-180, map(angularVelocity, 0, 700, 0, 255));  // Move to -180 degrees at approximately 300°/s
+  myservo.write(-180, map(angularVelocity, 10, 600, 0, 255));  // Move to -180 degrees at approximately 300 [deg/s]
   delay(3000);
 
-  angularVelocity = 700;
-  myservo.write(540, map(angularVelocity, 0, 700, 0, 255));  // Move to 540 degrees at 700°/s (max speed)
+  angularVelocity = 600;
+  myservo.write(540, map(angularVelocity, 10, 600, 0, 255));  // Move to 540 degrees at 600 [deg/s] (max speed)
   delay(3000);
 }
 ```
 
 ### 3. Wait for movement to complete
 ```
-#include <ooservo.h>
+#include <TekuteruServo.h>
 
-ooservo myservo;
+TekuteruServo myservo;
 
 void setup() {
   myservo.attach(2);
 }
 
 void loop() {
-  myservo.write(180, 30, true);    // Move to 180 degrees, wait until done
-  delay(50);                      // Wait 50 ms
+  myservo.write(180, 255, true);   // Move to 180 degrees, Wait for completion
 
-  myservo.write(-180, 100, true);  // Move to -180 degrees, wait until done
-  delay(50);
+  myservo.write(-180, 255, true);  // Move to -180 degrees, Wait for completion
 
-  myservo.write(540, true);        // Move to 540 degrees, wait until done. If no waiting time of 50 ms or longer is given, a positional error of up to ±1° may occur
+  myservo.write(540, 255);          // Move to 540 degrees
+  myservo.wait();                   // Wait until myservo finishes rotating
 }
 ```
 
 ### 4. Read the current angle
 ```
-#include <ooservo.h>
+#include <TekuteruServo.h>
 
-ooservo myservo;
+TekuteruServo myservo;
 
-long currentAngle;
+long currentAngle;  // Declare it as a long type.
 
 void setup() {
-  Serial.begin(9600);  // Start serial communication
+  Serial.begin(9600);  // Start serial communication (Set the serial monitor to 9600 baud.)
 
   myservo.attach(2);
 
-  currentAngle = myservo.read();  // Output the current angle (0 ≤ angle < 360)
+  currentAngle = myservo.read();  // Read the current angle (0 ≤ angle < 360)
   Serial.println(currentAngle);   // Display on serial monitor
 }
 
 void loop() {
-  myservo.write(360, true);       // Move to 360 degrees, wait until done
-  delay(100);                     // Wait 100 ms
-  currentAngle = myservo.read();  // Output the current angle (360)
+  myservo.write(360, 255, true);  // Move to 360 degrees, Wait for completion
+  currentAngle = myservo.read();  // Read the current angle (360±1)
   Serial.println(currentAngle);
 
-  myservo.write(0, true);         // Move to 0 degrees, wait until done
-  currentAngle = myservo.read();  // Output the current angle (0±1)
+  myservo.write(0, 255, true);    // Move to 0 degrees, Wait for completion
+  currentAngle = myservo.read();  // Read the current angle (0±1)
   Serial.println(currentAngle);
 
   myservo.write(3600);            // Move to 3600 degrees
   delay(1000);
-  currentAngle = myservo.read();  // Output the current angle (Note: Calling this function will immediately stop the motor)
+  currentAngle = myservo.read();  // Read the current angle
   Serial.println(currentAngle);
 }
 ```
 
 ### 5. Multiple servos
 ```
-#include <ooservo.h>
+#include <TekuteruServo.h>
 
-ooservo myservo1, myservo2, myservo3; // There is no software limit on the number of servos
+TekuteruServo myservo1, myservo2; // There is no software limit on the number of servos
 
 void setup() {
   myservo1.attach(2);
@@ -255,44 +264,45 @@ void setup() {
 
 void loop() {
   myservo1.write(180);
-  myservo2.write(540);
-  delay(3000);
+  myservo2.write(-90);
 
-  myservo1.write(540, 100, true);
+  myservo1.wait();    // Wait until myservo1 finishes rotating
+  myservo2.wait();    // Wait until myservo2 finishes rotating
 
-  myservo2.write(180, 150, true);
+  myservo1.write(-90, 255, true);
 
-  myservo1.write(-180, 50);
-  myservo2.write(-180, 100, true);
-  myservo1.wait();                // Wait until myservo1 finishes rotating
+  myservo2.write(180, 255, true);
+
+  myservo1.write(-180, 255);
+  myservo2.write(-180, 255, true);
+  myservo1.wait();
 }
 ```
 
-### 6. Other features
+### 6. Set Zeroing
 ```
-#include <ooservo.h>
+#include <TekuteruServo.h>
 
-ooservo myservo;
+TekuteruServo myservo;
 
 void setup() {
-  myservo.attach(2, false);  // Attach to pin 2; the servo will not hold its position
+  Serial.begin(9600);
 
-  myservo.zeroing();  // Set the current angle to 0 degrees
+  myservo.attach(2);
+
+  myservo.setHold(false);  // the servo will not hold its position
+
+  myservo.zeroing();      // Set the current angle to 0 degrees (Multiple rotations are not saved)
+
+  Serial.println("Zeroing successful");
 }
 
 void loop() {
-  myservo.write(180);
-  delay(100);
-  myservo.stop();  // Stop at the current position
-
-  delay(1000);
-
-  myservo.write(-180);
-  delay(100);
-  myservo.stop();  // Stop at the current position
-
-  delay(1000);
 }
-
 ```
 
+
+## Support, Disclaimer, and Feedback
+* Library Design: The design of this library is inspired by the [VarSpeedServo](https://github.com/netlabtoolkit/VarSpeedServo) library.
+* Brand Affiliation: TekuteruServo is not a product of Tower Pro.
+* Feedback: I have used translation tools to prepare this documentation. If you find any technical errors or awkward English expressions, we would greatly appreciate your feedback. Please contact us at: abc@gmail.com
