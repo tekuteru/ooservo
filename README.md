@@ -6,25 +6,38 @@ It supports ±1° angular accuracy, multi-turn positioning (±524,287 rotations)
 **Note:** This library is specifically designed for TekuteruServo hardware and is **not compatible** with standard hobby servos (e.g., SG90, MG996R).
 The Tekuteru-Servo hardware can be purchased here: [Buy TekuteruServo](https://tekuteru-en.square.site/product/TekuteruServo-full-angle-servo-motor-TekuteruServo-/6YOHLJ6JAV6S326MC53HLNRV?cp=true&sa=true&sbp=false&q=false)
 
+
 ## Features
-* **Extended angle range:** ±188,743,320° (±524,287 full rotations)
-* **High accuracy:** ±1°
-* **Intuitive Library Interface:** Dedicated library with `attach()` and `write()` methods, compatible with the standard Arduino Servo library
-* **Volatile Rotation Count:** While the absolute position is kept, the multi-turn rotation count is reset to zero upon power-up.
-* **Adjustable Speed:** 10 ~ 600 deg/s
-* **Real-time Feedback:** Capable of reading the current angle during operation.
-* **Drop-in Replacement:** Same wiring and physical dimensions as the SG90.
+* **High-Precision Multi-turn Positioning:** Supports ±524,287 full rotations (±188,743,320°) with ±1° accuracy.
+* **Intuitive Library Interface:** Dedicated `attach()` and `write()` methods, maintaining compatibility with standard Arduino Servo library programming logic.
+* **Adjustable Dynamics:** Controlled rotation speeds (10–600 deg/s) and real-time angle feedback.
+* **Drop-in Replacement:** Same wiring, physical dimensions, and logic voltage (3.3V–5V) as the SG90.
+* **Volatile Rotation Count:** While the absolute position (0–359°) is preserved, the multi-turn rotation count resets to zero upon power-up.
+
 
 ## Mechanical Specifications
 * **Supply Voltage:** 5V
-* **Logic Voltage:** 3.3V - 5V
-* **Maximum Rotation Speed:** 600 deg/s (0.1sec/60deg, approx. 100rpm)
+* **Max Speed:** 600 deg/s (0.1s/60deg, approx. 100rpm)
 * **Angular Acceleration:** 6,000 deg/s²
 * **Stall Torque:** 1.8 kgf·cm
 * **Gear Material:** Plastic
-* **Dimensions:** Same as SG90
-* **weight:** 15 g
-* **Wiring:** Same as SG90 (3-pin: VCC, GND, Signal)
+* **Weight:** 15 g
+
+
+## Usage Notes & Limitations
+
+### ⚠ Control & Connectivity
+* **Pin Control Limits:** Each I/O pin is designed to control one motor. However, you can broadcast to multiple motors on a single pin using methods that do not require feedback, such as `write()` with `wait=false`, `stop()`, `setZero()`, and `setHold()`.
+* **Hardware Interferences:** Using hardware interrupts in your sketch may cause jitter. Additionally, avoid strong magnetic fields and unstable power sources.
+* **Serial Pins:** Using pins dedicated to hardware serial communication (such as D0 and D1 on the Arduino Uno) is not recommended for motor control.
+
+### ⚠ Operational Risks
+* **Stall Torque & Impacts:** Physically forcing the motor to stop may cause **erratic behavior**. Sustained stall torque or strong impacts beyond specifications will **damage the plastic gears**.
+* **49.7-Day Limit:** Malfunctions will occur if the power remains on for more than 49.7 consecutive days due to internal timer overflow.
+
+### ⚠ Physical Handling
+* **Cable Care:** Do not pull on the wiring; internal connections are delicate and may break.
+
 
 ## Wiring Guide
 This motor follows the standard SG90 wiring convention:
@@ -36,6 +49,7 @@ This motor follows the standard SG90 wiring convention:
 | Yellow     | Signal   | Arduino I/O pin |
 
 ![Wiring Diagram](wiring.png)
+
 
 ## Class Methods
 
@@ -118,7 +132,7 @@ Returns `true` if the servo is currently rotating.
 
 ---
 
-### `zeroing()`
+### `setZero()`
 Sets the current position as the 0° reference point.  
 This zero-point is stored in non-volatile memory (EEPROM/Flash) and persists across power cycles.  
 **Note:** Only the absolute position (0-359°) is saved; the rotation count is not preserved.
@@ -130,15 +144,6 @@ Configures the motor's behavior when external force is applied. If set to `true`
 
 **Arguments:**
 - `hold`: `bool`(Default: `true`)
-
-
-## Safety Precautions
-* ⚠ **Pin Control Limits:** Each Arduino I/O pin is designed to control only one TekuteruServo at a time. However, you can connect and broadcast to multiple motors on a single pin if you only use methods that do not require feedback, such as `write()` with `wait=false`, `stop()`, `zeroing()`, and `setHold()`.
-* ⚠ **49.7-Day Limit:** Malfunctions will occur if the main unit's power remains on for more than 49.7 consecutive days.
-* ⚠ **Interrupts:** Using hardware interrupts in your sketch may cause jitter or unintended behavior.
-* ⚠ **Cable Care:** Do not pull on the wiring; internal connections may break.
-* ⚠ **Mechanical Limits:** Strong impacts or sustained stall torque will damage the plastic gears.
-* ⚠ **Magnetic Interference:** Avoid strong magnetic fields and unstable power sources.
 
 
 ## Code Examples
@@ -265,7 +270,6 @@ void setup() {
 void loop() {
   myservo1.write(180);
   myservo2.write(-90);
-
   myservo1.wait();    // Wait until myservo1 finishes rotating
   myservo2.wait();    // Wait until myservo2 finishes rotating
 
@@ -279,7 +283,7 @@ void loop() {
 }
 ```
 
-### 6. Set Zeroing
+### 6. Set setZero
 ```
 #include <TekuteruServo.h>
 
@@ -292,9 +296,9 @@ void setup() {
 
   myservo.setHold(false);  // the servo will not hold its position
 
-  myservo.zeroing();      // Set the current angle to 0 degrees (Multiple rotations are not saved)
+  myservo.setZero();      // Set the current angle to 0 degrees (Multiple rotations are not saved)
 
-  Serial.println("Zeroing successful");
+  Serial.println("setZero successful");
 }
 
 void loop() {
